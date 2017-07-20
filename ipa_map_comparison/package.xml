@@ -15,7 +15,4 @@
   <depend>rostest</depend>
   <depend>std_msgs</depend>
 
-  <export>
-
-  </export>
 </package>

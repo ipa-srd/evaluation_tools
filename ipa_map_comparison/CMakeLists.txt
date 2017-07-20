@@ -12,6 +12,8 @@ find_package(catkin REQUIRED
     rostest
     std_msgs)
 
+add_service_files(DIRECTORY srv FILES
+                  StartMapEval.srv)
 
  generate_messages(
    DEPENDENCIES
