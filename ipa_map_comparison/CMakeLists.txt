@@ -23,6 +23,7 @@ add_service_files(DIRECTORY srv FILES
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ipa_map_comparison
+  message_runtime
 )
 
 include_directories(include)
