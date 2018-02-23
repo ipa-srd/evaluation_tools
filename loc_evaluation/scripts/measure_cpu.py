@@ -11,7 +11,7 @@ def getProcessIDs(name):
     proc_id = 0
     for proc in psutil.process_iter():
         try:
-            if name in proc.name:
+            if name in proc.name():
                 proc_id = proc.pid
         except psutil.NoSuchProcess:
             pass
@@ -46,8 +46,8 @@ if __name__ == '__main__':
 
     while not rospy.is_shutdown():
         rate.sleep()
-        cpu = cpu + process.get_cpu_percent()
-        mem = mem + process.get_memory_percent()
+        cpu = cpu + process.cpu_percent()
+        mem = mem + process.memory_percent()
         count = count + 1
         if (count%10 == 0):
             rospack = rospkg.RosPack()
