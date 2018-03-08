@@ -1,0 +1,58 @@
+#!/bin/bash
+for type in "EWMA"
+do
+for w in 0 #4 16 64 256 512
+do
+outFile=lts_loc_error_$type
+outFile+=_$w.txt
+echo -e "+----------+-----------+-------------+----------+---------+---------+\n| cellSize | meanError | medianError | maxError | 25% Qnt | 75% Qnt |\n+----------+-----------+-------------+----------+---------+---------+" > $outFile
+
+for r in  1 1.25 1.5 1.75
+do
+echo "testing at res $r"
+for i in {1..5}
+do
+echo "run $i"
+if ! pgrep -x "roscore" > /dev/null
+then
+	echo "starting roscore"
+	killall -9 rosout
+	killall -9 rosmaster
+	roscore&
+	sleep 5
+	rosparam set use_sim_time true
+	sleep 2
+fi
+roslaunch ipa_long_term_slam long_term_slam.launch map_res:=$r init_from_static_map:=true ndt_type:=$type ndt_match:=false > lts_log_$r.txt&
+sleep 2
+roslaunch loc_evaluation measure.launch&
+rosbag play /home/srd-pz/catkin_ws/src/evaluation_tools/loc_evaluation/production_plant_test_07_filtered.bag -r 2 --clock | (echo -en "\r$i" && cat)
+echo "killing roslaunch"
+pkill $$
+killall roslaunch
+done
+echo "stats"
+R -q -e "options("scipen" = 10); x <- read.csv('/home/srd-pz/catkin_ws/src/evaluation_tools/loc_evaluation/data/test_data.txt', header = F); summary(x);" > lts_loc_error_$r.txt
+MIN=$(awk '/Min./' lts_loc_error_$r.txt | grep -o -E "[0-9][0-9]*\.[0-9][0-9]?[0-9]?")
+MAX=$(awk '/Max./' lts_loc_error_$r.txt | grep -o -E "[0-9][0-9]*\.[0-9][0-9]?[0-9]?")
+MEAN=$(awk '/Mean/' lts_loc_error_$r.txt | grep -o -E "[0-9][0-9]*\.[0-9][0-9]?[0-9]?")
+MEDIAN=$(awk '/Median/' lts_loc_error_$r.txt | grep -o -E "[0-9][0-9]*\.[0-9][0-9]?[0-9]?")
+Q1=$(awk '/1st Qu./' lts_loc_error_$r.txt | grep -o -E "[0-9][0-9]*\.[0-9][0-9]?[0-9]?")
+Q3=$(awk '/ 3rd Qu./' lts_loc_error_$r.txt | grep -o -E "[0-9][0-9]*\.[0-9][0-9]?[0-9]?")
+res=$(printf %-4s $r)
+echo "|   $res   |   $MEAN   |    $MEDIAN    |  $MAX   |  $Q1  |  $Q3  |" >> $outFile
+rm -f /home/srd-pz/catkin_ws/src/evaluation_tools/loc_evaluation/data/test_data.txt
+pkill $$
+killall roslaunch
+killall roscore
+killall -9 rosout
+killall -9 rosmaster
+killall -9 roscore
+pkill $$
+killall roslaunch
+done
+echo "+----------+-----------+-------------+----------+---------+---------+" >> $outFile
+pkill $$
+killall roslaunch
+done
+done
