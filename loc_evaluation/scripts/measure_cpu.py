@@ -31,7 +31,18 @@ if __name__ == '__main__':
         sys.exit()
 
     process_ID = getProcessIDs(options.process)
-    file_name = str(options.file)
+    file = str(options.file)
+
+    rospack = rospkg.RosPack()
+    rospack.list()
+    path =rospack.get_path("loc_evaluation")
+    path = path + "/data/"
+    file_path = path + file + '.txt'
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print "removed output file"
+
     if process_ID == 0:
         parser.error("No process named " + options.process)
     else:
@@ -51,16 +62,10 @@ if __name__ == '__main__':
         mem = mem + process.memory_percent()
         count = count + 1
         if (count%10 == 0):
-            rospack = rospkg.RosPack()
-            rospack.list()
-            path =rospack.get_path("loc_evaluation")
-            path = path + "/data/"
-            file = open(path + file_name + '.txt','w+')
             print "current CPU percentage is: " +  str(curr_cpu)
             print "average CPU percentage is: " + str(cpu/count)
             print "average Memory percentage is: " + str(mem/count)
-            file.write("cpu_mean: "+str(cpu/count)+"\n");
-            file.write("mem_mean: "+str(mem/count));
-            file.close()
-
+            with open(file_path, 'w+') as f:
+                f.write("cpu_mean: "+str(cpu/count)+"\n");
+                f.write("mem_mean: "+str(mem/count));
 

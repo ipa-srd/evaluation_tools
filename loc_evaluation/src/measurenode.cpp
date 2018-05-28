@@ -95,9 +95,9 @@ int main(int argc, char **argv)
   if (!pn.getParam("count_max", count_max))
     count_max = 30;
   mean_file_name = path + "/" + mean_file_name;
-  path = path + "/" + file_name;
+  file_name = path + "/" + file_name;
   std::ofstream log, mean_file;
-  log.open(path.c_str(), std::ofstream::out | std::ofstream::app);
+  log.open(file_name.c_str(), std::ofstream::out | std::ofstream::app);
   mean_file.open(mean_file_name.c_str(), std::ofstream::out | std::ofstream::app);
 
   int count = 0;

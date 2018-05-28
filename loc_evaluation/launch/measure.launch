@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="name" default="test_data.txt"/>
-  <arg name="mean_name" default="test_data_mean.txt"/>
+  <arg name="name" default="loc_acc_data.txt"/>
+  <arg name="mean_name" default="loc_acc_mean_data.txt"/>
   <arg name="robot_id" default=""/>
 
   <!--group ns="$(arg robot_id)"-->    
