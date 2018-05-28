@@ -46,7 +46,8 @@ if __name__ == '__main__':
 
     while not rospy.is_shutdown():
         rate.sleep()
-        cpu = cpu + process.cpu_percent()
+        curr_cpu = process.cpu_percent()
+        cpu = cpu + curr_cpu
         mem = mem + process.memory_percent()
         count = count + 1
         if (count%10 == 0):
@@ -55,6 +56,7 @@ if __name__ == '__main__':
             path =rospack.get_path("loc_evaluation")
             path = path + "/data/"
             file = open(path + file_name + '.txt','w+')
+            print "current CPU percentage is: " +  str(curr_cpu)
             print "average CPU percentage is: " + str(cpu/count)
             print "average Memory percentage is: " + str(mem/count)
             file.write("cpu_mean: "+str(cpu/count)+"\n");

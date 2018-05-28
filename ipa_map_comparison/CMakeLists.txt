@@ -3,7 +3,7 @@ project(ipa_map_comparison)
 
 add_compile_options(-std=c++11)
 
-find_package(catkin REQUIRED
+find_package(catkin REQUIRED COMPONENTS
     message_generation
     nav_msgs
     roscpp
@@ -26,7 +26,7 @@ catkin_package(
   message_runtime
 )
 
-include_directories(include)
+include_directories(include ${catkin_INCLUDE_DIRS})
 
  add_library(ipa_map_comparison
    src/ipa_map_comparison_node.cpp
