@@ -20,6 +20,11 @@ bool robot_standstill(false);
 uint min_standstill_count(25);
 ros::Time stamp;
 bool use_standstill;
+bool failure_tracking;
+double pos_failure_thres;
+double ang_failure_thres;
+size_t fails = 0;
+
 
 void compare(const nav_msgs::Odometry::ConstPtr& msg)
 {
@@ -58,6 +63,7 @@ void compare(const nav_msgs::Odometry::ConstPtr& msg)
         robot_standstill = true;
       ROS_INFO_STREAM("Standstill counter:" <<standstill_counter);
   }
+
 }
 
 int main(int argc, char **argv)
@@ -77,6 +83,9 @@ int main(int argc, char **argv)
   std::string map("/map");
   std::string name;
 
+  ros::Time failure_time = ros::Time(0);
+  ros::Duration failure_timeout = ros::Duration(2.);
+
   std::string path;
 
   int count_max;
@@ -89,11 +98,12 @@ int main(int argc, char **argv)
 
   if (!pn.getParam("path", path))
     path = "";
-  std::string file_name, mean_file_name;
+  std::string file_name, mean_file_name, failure_file_name;
   if (!pn.getParam("file_name", file_name))
     file_name = "measure.txt";
 
-  mean_file_name = std::string("mean" + file_name);
+  mean_file_name = std::string("mean_" + file_name);
+  failure_file_name = std::string("failures_" + file_name);
 
   if (!pn.getParam("count_max", count_max))
     count_max = 30;
@@ -101,14 +111,21 @@ int main(int argc, char **argv)
  if (!pn.getParam("use_standstill", use_standstill))
     use_standstill = false;
 
+ if (!pn.getParam("track_failures", failure_tracking))
+    failure_tracking = false;
+ if (!pn.getParam("pos_failure_thres", pos_failure_thres))
+    pos_failure_thres = 2.0;
+ if (!pn.getParam("ang_failure_thres", ang_failure_thres))
+    ang_failure_thres = 1.57;
+
   mean_file_name = path + "/" + mean_file_name;
   file_name = path + "/" + file_name;
-  std::ofstream log, mean_file;
-  //log.open(file_name.c_str(), std::ofstream::out | std::ofstream::app);
-  //mean_file.open(mean_file_name.c_str(), std::ofstream::out | std::ofstream::app);
-
+  failure_file_name = path + "/" + failure_file_name;
+  std::ofstream log, mean_log, failure_log;
   log.open(file_name.c_str(), std::ofstream::out);
-  mean_file.open(mean_file_name.c_str(), std::ofstream::out);
+  mean_log.open(mean_file_name.c_str(), std::ofstream::out);
+  if (failure_tracking)
+    failure_log.open(failure_file_name.c_str(), std::ofstream::out);
 
   int count = 0;
   float sum_r = 0;
@@ -149,31 +166,43 @@ int main(int argc, char **argv)
     r_vec.push_back(r);
     ROS_INFO_STREAM(count);
 
+    if (r > pos_failure_thres && (ros::Time::now() - failure_time) > failure_timeout)
+    {
+      fails++;
+      failure_time = ros::Time::now();
+    }
+
     if (count_max == count)
     {
       ROS_INFO_STREAM("Ended Recording due to max measurement count");
       ROS_INFO_STREAM(path);
-      mean_file <<sum_r/count<<std::endl;
+      mean_log <<sum_r/count<<std::endl;
+      failure_log << fails <<std::endl;
       log.close();
-      mean_file.close();
+      mean_log.close();
+      failure_log.close();
       break;
     }
     else if (robot_standstill)
     {
       ROS_INFO_STREAM("Ended Recording due to robot stand still");
       ROS_INFO_STREAM(path);
-      mean_file <<sum_r/count<<std::endl;
+      mean_log <<sum_r/count<<std::endl;
+      failure_log << fails <<std::endl;
       log.close();
-      mean_file.close();
+      mean_log.close();
+      failure_log.close();
       break;
     }
   }
 
-  mean_file <<"mean: "<<sum_r/count<<std::endl;
+  mean_log <<"mean: "<<sum_r/count<<std::endl;
   float max_element = *(std::max_element(r_vec.begin(),(r_vec.end()-1)));
   float min_element = *(std::min_element(r_vec.begin(),(r_vec.end()-1)));
-  mean_file <<"max_element: "<<max_element<<std::endl;
-  mean_file <<"min_element: "<<min_element<<std::endl;
-  mean_file.close();
+  mean_log <<"max_element: "<<max_element<<std::endl;
+  mean_log <<"min_element: "<<min_element<<std::endl;
+  mean_log.close();
+  failure_log << fails <<std::endl;
+  failure_log.close();
   return 0;
 }

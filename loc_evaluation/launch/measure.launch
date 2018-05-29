@@ -1,17 +1,35 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="name" default="loc_acc_data.txt"/>
-  <!--arg name="mean_name" default="loc_acc_mean_data.txt"/-->
-  <arg name="robot_id" default=""/>
+  <arg name="use_namespace" default="false"/>
+  <arg name="robot_id" default="rob1"/>
+  <arg name="track_failures" default="false"/>
+  <arg name="pos_failure_thres" default="2"/>
+  <arg name="ang_failure_thres" default="1.5"/>
 
-  <group ns="$(arg robot_id)">
+
+  <group ns="$(arg robot_id)"  if="$(arg use_namespace)">
     <node name="loc_evaluation" pkg="loc_evaluation" type="loc_evaluation" output="screen" >
       <param name="path" type="string" value="$(find loc_evaluation)/data"/>
       <param name="file_name" type="string" value="$(arg name)"/>
-      <!--param name="mean_file_name" type="string" value="$(arg mean_name)"/-->
       <param name="count_max" type="int" value="10000"/>
       <param name="tf_prefix" type="str" value="$(arg robot_id)" />
+      <param name="track_failures" type="bool" value="$(arg track_failures)" />
+      <param name="pos_failure_thres" type="double" value="$(arg pos_failure_thres)" />
+      <param name="ang_failure_thres" type="double" value="$(arg anh_failure_thres)" />
     </node>
   </group>
+
+    <group  unless="$(arg use_namespace)">
+      <node name="loc_evaluation" pkg="loc_evaluation" type="loc_evaluation" output="screen" >
+        <param name="path" type="string" value="$(find loc_evaluation)/data"/>
+        <param name="file_name" type="string" value="$(arg name)"/>
+        <param name="count_max" type="int" value="10000"/>
+        <param name="tf_prefix" type="str" value="$(arg robot_id)" />
+        <param name="track_failures" type="bool" value="$(arg track_failures)" />
+        <param name="pos_failure_thres" type="double" value="$(arg pos_failure_thres)" />
+        <param name="ang_failure_thres" type="double" value="$(arg ang_failure_thres)" />
+      </node>
+    </group>
 
 </launch>
