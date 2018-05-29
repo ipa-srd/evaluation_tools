@@ -19,6 +19,7 @@ bool init(false);
 bool robot_standstill(false);
 uint min_standstill_count(25);
 ros::Time stamp;
+bool use_standstill;
 
 void compare(const nav_msgs::Odometry::ConstPtr& msg)
 {
@@ -51,9 +52,12 @@ void compare(const nav_msgs::Odometry::ConstPtr& msg)
   else
     init = false;
 
-  if (min_standstill_count < standstill_counter)
-    robot_standstill = true;
-  ROS_INFO_STREAM("Standstill counter:" <<standstill_counter);
+  if (use_standstill)
+  {
+      if (min_standstill_count < standstill_counter)
+        robot_standstill = true;
+      ROS_INFO_STREAM("Standstill counter:" <<standstill_counter);
+  }
 }
 
 int main(int argc, char **argv)
@@ -89,16 +93,22 @@ int main(int argc, char **argv)
   if (!pn.getParam("file_name", file_name))
     file_name = "measure.txt";
 
-  if (!pn.getParam("mean_file_name", mean_file_name))
-    mean_file_name = "measure_mean.txt";
+  mean_file_name = std::string("mean" + file_name);
 
   if (!pn.getParam("count_max", count_max))
     count_max = 30;
+
+ if (!pn.getParam("use_standstill", use_standstill))
+    use_standstill = false;
+
   mean_file_name = path + "/" + mean_file_name;
   file_name = path + "/" + file_name;
   std::ofstream log, mean_file;
-  log.open(file_name.c_str(), std::ofstream::out | std::ofstream::app);
-  mean_file.open(mean_file_name.c_str(), std::ofstream::out | std::ofstream::app);
+  //log.open(file_name.c_str(), std::ofstream::out | std::ofstream::app);
+  //mean_file.open(mean_file_name.c_str(), std::ofstream::out | std::ofstream::app);
+
+  log.open(file_name.c_str(), std::ofstream::out);
+  mean_file.open(mean_file_name.c_str(), std::ofstream::out);
 
   int count = 0;
   float sum_r = 0;
@@ -112,9 +122,9 @@ int main(int argc, char **argv)
 
     try
     {
-      listener.waitForTransform(map, name+"/base_link", stamp, ros::Duration(0.1));
+      listener.waitForTransform(map, "/base_footprint", stamp, ros::Duration(0.1));
       /* @todo maybe use ros::Time(0) */
-      listener.lookupTransform(map, name+"/base_link", stamp, transform);
+      listener.lookupTransform(map, "/base_footprint", stamp, transform);
     }
     catch (tf::TransformException& ex)
     {
