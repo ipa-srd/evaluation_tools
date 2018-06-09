@@ -57,6 +57,7 @@ class LocErrorMeasure:
         self.root_frame = rospy.get_param("~root_frame", "map")
         self.measured_frame = rospy.get_param("~measured_frame", "base_link")
         self.groundtruth_topic = rospy.get_param("~groundtruth_topic", "base_pose_ground_truth")
+        print "gttopic:", self.groundtruth_topic
 
         self.freq = 5
 
@@ -118,8 +119,9 @@ class LocErrorMeasure:
         data = {}
         data["trans"] = self.delta_trans
         data["rot"] = self.delta_rot
-        data["max_trans"] = max(data["trans"])
-        data["max_rot"] = max(data["rot"])
+        if len(data["trans"]) > 0:
+            data["max_trans"] = max(data["trans"])
+            data["max_rot"] = max(data["rot"])
         #data["avg_trans"] = np.mean(data["trans"])
         #data["avg_rot"] = np.mean(data["rot"])
         data["loc_fails"] = self.fails

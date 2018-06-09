@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="file_name" default="loc_data"/>
-  <arg name="use_namespace" default="false"/>
-  <arg name="robot_id" default="rob1"/>
+  <arg name="use_namespace" default="true"/>
+  <arg name="robot_id" default="/rob_1"/>
   <arg name="root_frame" default="map"/>
   <arg name="measured_frame" default="base_link"/>
   <arg name="groundtruth_topic" default="base_pose_ground_truth"/>
@@ -15,10 +15,10 @@
     <node name="loc_performance_observer" pkg="loc_evaluation" type="loc_performance_observer.py" output="screen" >
       <param name="process_name" type="string" value="$(arg process_name)"/>
       <param name="log_path" type="string" value="$(find loc_evaluation)/data"/>
-      <param name="file_name" type="string" value="$(arg name)"/>
+      <param name="file_name" type="string" value="$(arg file_name)"/>
       <param name="root_frame" type="str" value="$(arg root_frame)" />
       <param name="measured_frame" type="str" value="$(arg measured_frame)" />
-      <param name="groundtruth_topic" type="str" value="$(arg groundtruth_topic)" />
+      <param name="groundtruth_topic" type="str" value="$(arg robot_id)/$(arg groundtruth_topic)" />
       <param name="max_pos_error" type="double" value="$(arg max_pos_error)" />
       <param name="max_ang_error" type="double" value="$(arg max_ang_error)" />
     </node>
