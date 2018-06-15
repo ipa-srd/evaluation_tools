@@ -59,7 +59,7 @@ class LocErrorMeasure:
         self.groundtruth_topic = rospy.get_param("~groundtruth_topic", "base_pose_ground_truth")
         print "gttopic:", self.groundtruth_topic
 
-        self.freq = 5
+        self.freq = 2
 
         self.delta_trans = []
         self.delta_rot =  []
@@ -105,9 +105,11 @@ class LocErrorMeasure:
 
         self.count = self.count + 1
         if delta_trans > self.max_pos_error: #or delta_rot > self.max_ang_error:
+            print "Fail detected at:", rospy.get_time()
             if rospy.get_time() > self.fail_time + self.fail_timeout:
                 self.fails += 1
                 self.fail_time = rospy.get_time()
+                print "Fail written at:", rospy.get_time()
 
         self.count += 1
         if (self.count%4 == 0):
@@ -119,7 +121,7 @@ class LocErrorMeasure:
         data = {}
         data["trans"] = self.delta_trans
         data["rot"] = self.delta_rot
-        if len(data["trans"]) > 0:
+        if (len(self.delta_trans)) > 0:
             data["max_trans"] = max(data["trans"])
             data["max_rot"] = max(data["rot"])
         #data["avg_trans"] = np.mean(data["trans"])
